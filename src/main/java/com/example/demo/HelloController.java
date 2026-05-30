@@ -9,7 +9,7 @@ public class HelloController {
 
     @GetMapping("/hello")
     public String hello(@RequestParam(defaultValue = "World") String name) {
-        return "Hello, " + name + "! v4";
+        return "Hello, " + name + "! v5";
     }
 
     @GetMapping("/health")

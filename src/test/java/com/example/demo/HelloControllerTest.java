@@ -25,7 +25,7 @@ class HelloControllerTest {
     void testHelloWithName() throws Exception {
         mockMvc.perform(get("/hello").param("name", "张三"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Hello, 张三! v6"));
+                .andExpect(content().string("Hello, 张三! v7"));
     }
 
     @Test

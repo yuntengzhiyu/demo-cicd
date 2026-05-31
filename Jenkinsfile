@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    environment {
+        HARBOR_URL    = '10.174.130.158'
+        HARBOR_PROJECT = 'demo'
+        IMAGE_NAME    = 'demo-cicd'
+        IMAGE_TAG     = "${BUILD_NUMBER}"
+        FULL_IMAGE    = "${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}"
+    }
+
     stages {
         stage('拉取代码') {
             steps {
@@ -16,17 +24,32 @@ pipeline {
 
         stage('构建镜像') {
             steps {
-                sh 'docker build -t demo-cicd:latest .'
+                sh "docker build -t ${FULL_IMAGE} ."
             }
         }
 
-        stage('部署') {
+        stage('推送镜像到 Harbor') {
             steps {
-                sh '''
-                    docker stop demo-app || true
-                    docker rm demo-app || true
-                    docker run -d --name demo-app -p 8081:8081 demo-cicd:latest
-                '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'harbor-credentials',
+                    usernameVariable: 'HARBOR_USER',
+                    passwordVariable: 'HARBOR_PASS'
+                )]) {
+                    sh """
+                        docker login ${HARBOR_URL} -u ${HARBOR_USER} -p ${HARBOR_PASS}
+                        docker push ${FULL_IMAGE}
+                        docker logout ${HARBOR_URL}
+                    """
+                }
+            }
+        }
+
+        stage('部署到 K8s') {
+            steps {
+                sh """
+                    sed -i 's|IMAGE_PLACEHOLDER|${FULL_IMAGE}|g' k8s/deployment.yaml
+                    kubectl apply -f k8s/deployment.yaml
+                """
             }
         }
     }

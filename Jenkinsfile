@@ -18,7 +18,7 @@ pipeline {
 
         stage('构建 jar') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 mvn clean package -DskipTests'
             }
         }
 

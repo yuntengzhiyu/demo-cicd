@@ -57,5 +57,6 @@ pipeline {
     post {
         success { echo '部署成功！' }
         failure { echo '构建失败！' }
+
     }
 }
